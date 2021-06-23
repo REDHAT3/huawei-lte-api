@@ -2,6 +2,7 @@ import datetime
 import warnings
 from typing import Optional, Tuple, Union
 from urllib.parse import urlparse, urlunparse
+
 from huawei_lte_api.Connection import Connection
 
 
@@ -10,26 +11,34 @@ class AuthorizedConnection(Connection):
     login_time = None
     logged_in = False
 
-    def __init__(self, url: str, username: Optional[str]=None, password: Optional[str]=None,
-                 login_on_demand: bool=False, timeout: Union[float, Tuple[float, float], None] = None):
+    def __init__(
+        self,
+        url: str,
+        iface: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        login_on_demand: bool = False,
+        timeout: Union[float, Tuple[float, float], None] = None,
+    ):
         # Auth info embedded in the URL may reportedly cause problems, strip it
         parsed_url = urlparse(url)
-        clear_url = urlunparse((
-            parsed_url.scheme,
-            parsed_url.netloc.rpartition("@")[-1],
-            *parsed_url[2:]
-        ))
-        super().__init__(clear_url, timeout=timeout)
+        clear_url = urlunparse(
+            (parsed_url.scheme, parsed_url.netloc.rpartition("@")[-1], *parsed_url[2:])
+        )
+        super().__init__(clear_url, iface=iface, timeout=timeout)
         username = username if username else parsed_url.username
         password = password if password else parsed_url.password
 
-        from huawei_lte_api.api.User import User  # pylint: disable=cyclic-import,import-outside-toplevel
+        from huawei_lte_api.api.User import (
+            User,
+        )  # pylint: disable=cyclic-import,import-outside-toplevel
+
         self.user = User(self, username, password)
 
         if login_on_demand:
             warnings.warn(
                 "login_on_demand is deprecated, and has no effect, please remove this parameter from your code! if  will get removed in next minor release.",
-                DeprecationWarning
+                DeprecationWarning,
             )
 
         if self.user.login(True):
