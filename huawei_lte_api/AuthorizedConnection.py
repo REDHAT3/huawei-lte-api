@@ -25,6 +25,7 @@ class AuthorizedConnection(Connection):
         clear_url = urlunparse(
             (parsed_url.scheme, parsed_url.netloc.rpartition("@")[-1], *parsed_url[2:])
         )
+
         super().__init__(clear_url, iface=iface, timeout=timeout)
         username = username if username else parsed_url.username
         password = password if password else parsed_url.password
